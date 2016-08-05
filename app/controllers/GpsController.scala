@@ -6,7 +6,7 @@ class GpsController extends Controller {
 
   def save = Action { request =>
     println("Body: " + request.body)
-    Created("Done")
+    Created("OK")
   }
 
 }
