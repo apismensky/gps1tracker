@@ -15,7 +15,7 @@ class GpsController @Inject()(config: Configuration) extends Controller {
     println(s"dbUrl: $dbUrl")
   	val mongoClient = MongoClient(dbUrl)
 
-  	val database= mongoClient.getDatabase("gps1db")
+  	val database= mongoClient.getDatabase("heroku_60trxdkd")
   	val collection = database.getCollection("gps1records")
   	val timestamp = System.currentTimeMillis / 1000
    // json.map(j => {
