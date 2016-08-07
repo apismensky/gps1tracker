@@ -13,3 +13,5 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 GET     /buildInfo                  controllers.HealthController.buildInfo()
 
 POST    /gps                        controllers.GpsController.save
+
+GET     /gps                        controllers.GpsController.read

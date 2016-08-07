@@ -26,15 +26,31 @@ class GpsController @Inject()(config: Configuration) extends Controller {
     val doc = Document("_id" -> id, "ts" -> timestamp, "lat" -> lat, "lon" -> lon, "bat" -> bat)
     val observable = collection.insertOne(doc)
 
-      observable.subscribe(new Observer[Completed] {
+    observable.subscribe(new Observer[Completed] {
         override def onNext(result: Completed): Unit = println("Inserted")
         override def onError(e: Throwable): Unit = println(" \n\nFailed " + e + "\n\n")
         override def onComplete(): Unit = println("Completed")
-      })
+    })
 
     //mongoClient.close()
-    println("Body: " + request.body)
     Created("OK")
+  }
+
+  def read = Action { request =>
+
+    val dbUrl = config.getString("mongodb.uri").getOrElse(throw new IllegalStateException("Configure mongodb.uriin application.conf"))
+    val mongoClient = MongoClient(dbUrl)
+
+    val database= mongoClient.getDatabase("heroku_60trxdkd")
+    val collection = database.getCollection("gps1records")
+
+
+    collection.find().subscribe(
+      (doc: Document) => println(doc.toJson()),                           // onNext
+      (error: Throwable) => println(s"Query failed: ${error.getMessage}") // onError
+    )
+
+    Created("Done")
   }
 
 }
