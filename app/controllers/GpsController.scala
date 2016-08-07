@@ -18,13 +18,12 @@ class GpsController @Inject()(config: Configuration) extends Controller {
   	val database= mongoClient.getDatabase("heroku_60trxdkd")
   	val collection = database.getCollection("gps1records")
   	val timestamp = System.currentTimeMillis / 1000
-   // json.map(j => {
-   //   println("HERE!!!!!")
-//      val id = (j \ "i").as[String]
-//      val lat = (j \ "e").as[String]
-//      val long = (j \ "n").as[String]
-//      val bat = (j \ "b").as[String]
-      val doc = Document("_id" -> timestamp, "doc" -> json.get.toString)
+    json.map(j => {
+      val id = (j \ "i").as[String]
+      val lat = (j \ "e").as[String]
+      val lon = (j \ "n").as[String]
+      val bat = (j \ "b").as[String]
+      val doc = Document("_id" -> id, "ts" -> timestamp, "lat" -> lat, "lon" -> lon, "bat" -> bat)
       val observable = collection.insertOne(doc)
 
       observable.subscribe(new Observer[Completed] {
@@ -32,8 +31,7 @@ class GpsController @Inject()(config: Configuration) extends Controller {
         override def onError(e: Throwable): Unit = println(" \n\nFailed " + e + "\n\n")
         override def onComplete(): Unit = println("Completed")
       })
-    //}
-    //)
+    })
     //mongoClient.close()
     println("Body: " + request.body)
     Created("OK")
