@@ -1,43 +1,41 @@
 package controllers
 
+import com.google.inject.Inject
 import play.api.mvc._
-
 import org.mongodb.scala._
-import org.mongodb.scala.model.Aggregates._
-import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Projections._
-import org.mongodb.scala.model.Sorts._
-import org.mongodb.scala.model.Updates._
-import org.mongodb.scala.model._
+import play.api.Configuration
 
-class GpsController extends Controller {
+class GpsController @Inject()(config: Configuration) extends Controller {
 
   def save = Action { request =>
+    val json = request.body.asJson
 
-  	val record: String = request.body;
+    val dbUrl = config.getString("mongodb.uri").getOrElse(throw new IllegalStateException("Configure mongodb.uriin application.conf"))
 
-  	val mongoClient: MongoClient = MongoClient()
+    println(s"dbUrl: $dbUrl")
+  	val mongoClient = MongoClient(dbUrl)
 
-  	val database: MongoDatabase = mongoClient.getDatabase("gps1db");
-
-  	val collection: MongoCollection[Document] = database.getCollection("gps1records")
-
-  	val timestamp: Long = System.currentTimeMillis / 1000
-
-  	val doc: Document = Document("_id" -> timestamp, "record" -> record)
-
-  	val observable: Observable[Completed] = collection.insertOne(doc)
+  	val database= mongoClient.getDatabase("gps1db")
+  	val collection = database.getCollection("gps1records")
+  	val timestamp = System.currentTimeMillis / 1000
+   // json.map(j => {
+   //   println("HERE!!!!!")
+//      val id = (j \ "i").as[String]
+//      val lat = (j \ "e").as[String]
+//      val long = (j \ "n").as[String]
+//      val bat = (j \ "b").as[String]
+      val doc = Document("_id" -> timestamp, "doc" -> json.get.toString)
+      val observable = collection.insertOne(doc)
 
       observable.subscribe(new Observer[Completed] {
         override def onNext(result: Completed): Unit = println("Inserted")
         override def onError(e: Throwable): Unit = println(" \n\nFailed " + e + "\n\n")
         override def onComplete(): Unit = println("Completed")
       })
-
-    mongoClient.close();
-
+    //}
+    //)
+    //mongoClient.close()
     println("Body: " + request.body)
-
     Created("OK")
   }
 
