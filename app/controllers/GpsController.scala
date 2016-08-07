@@ -8,8 +8,8 @@ import play.api.Configuration
 class GpsController @Inject()(config: Configuration) extends Controller {
 
   def save = Action { request =>
-    val json = request.body.asJson
 
+    val json = request.body.asJson.getOrElse(throw new IllegalArgumentException("Invalid request body - JSON expected"))
     val dbUrl = config.getString("mongodb.uri").getOrElse(throw new IllegalStateException("Configure mongodb.uriin application.conf"))
 
     println(s"dbUrl: $dbUrl")
@@ -18,10 +18,11 @@ class GpsController @Inject()(config: Configuration) extends Controller {
   	val database= mongoClient.getDatabase("heroku_60trxdkd")
   	val collection = database.getCollection("gps1records")
   	val timestamp = System.currentTimeMillis / 1000
-    val id = (json.get \ "i").as[String]
-    val lat = (json.get \ "e").as[String]
-    val lon = (json.get \ "n").as[String]
-    val bat = (json.get \ "b").as[String]
+    println("JSON:"+json.toString)
+    val id = (json \ "i").as[Int]
+    val lat = (json \ "e").as[Int]
+    val lon = (json \ "n").as[Int]
+    val bat = (json \ "b").as[Int]
     val doc = Document("_id" -> id, "ts" -> timestamp, "lat" -> lat, "lon" -> lon, "bat" -> bat)
     val observable = collection.insertOne(doc)
 
