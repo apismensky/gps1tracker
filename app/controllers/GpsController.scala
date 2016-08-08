@@ -20,13 +20,14 @@ class GpsController @Inject()(config: Configuration) extends Controller {
 
   	val database= mongoClient.getDatabase("heroku_60trxdkd")
   	val collection = database.getCollection("gps1records")
-  	val timestamp = System.currentTimeMillis / 1000
+  	val ts = System.currentTimeMillis / 1000
     println("JSON:"+json.toString)
-    val id = (json \ "i").as[Int]
-    val lat = (json \ "e").as[Int]
-    val lon = (json \ "n").as[Int]
-    val bat = (json \ "b").as[Int]
-    val doc = Document("_id" -> id, "ts" -> timestamp, "lat" -> lat, "lon" -> lon, "bat" -> bat)
+    val i = (json \ "i").as[Int]
+    val e = (json \ "e").as[Int]
+    val n = (json \ "n").as[Int]
+    val b = (json \ "b").as[Int]
+    val id = i + "-" + ts.toString
+    val doc = Document("_id" -> id, "ts" -> ts.toInt, "i" -> i, "e" -> e, "n" -> n, "b" -> b)
     val observable = collection.insertOne(doc)
 
     observable.subscribe(new Observer[Completed] {
@@ -58,7 +59,7 @@ class GpsController @Inject()(config: Configuration) extends Controller {
 
     while(!done) { Thread.sleep(100) }
 
-    println(builder.toString())
+    //println(builder.toString())
 
     Created(builder.toString())
 
