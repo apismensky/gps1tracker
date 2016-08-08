@@ -1,9 +1,12 @@
 package controllers
 
+import scala.collection.mutable.ListBuffer
+
 import com.google.inject.Inject
 import play.api.mvc._
 import org.mongodb.scala._
 import play.api.Configuration
+import play.api.libs.json.{JsObject, JsValue}
 
 class GpsController @Inject()(config: Configuration) extends Controller {
 
@@ -44,13 +47,21 @@ class GpsController @Inject()(config: Configuration) extends Controller {
     val database= mongoClient.getDatabase("heroku_60trxdkd")
     val collection = database.getCollection("gps1records")
 
+    val builder = StringBuilder.newBuilder
+    var done = false;
 
     collection.find().subscribe(
-      (doc: Document) => println(doc.toJson()),                           // onNext
-      (error: Throwable) => println(s"Query failed: ${error.getMessage}") // onError
+      (doc: Document) => builder.append(doc.toJson()+", \n"),              // onNext
+      (error: Throwable) => println(s"Query failed: ${error.getMessage}"), // onError
+      () => done = true // Complete
     )
 
-    Created("Done")
+    while(!done) { Thread.sleep(100) }
+
+    println(builder.toString())
+
+    Created(builder.toString())
+
   }
 
 }
