@@ -1,12 +1,9 @@
 package controllers
 
-import scala.collection.mutable.ListBuffer
-
 import com.google.inject.Inject
 import play.api.mvc._
 import org.mongodb.scala._
 import play.api.Configuration
-import play.api.libs.json.{JsObject, JsValue}
 
 class GpsController @Inject()(config: Configuration) extends Controller {
 

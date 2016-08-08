@@ -15,3 +15,7 @@ GET     /buildInfo                  controllers.HealthController.buildInfo()
 POST    /gps                        controllers.GpsController.save
 
 GET     /gps                        controllers.GpsController.read
+
+POST     /coordinates/add                controllers.GpsAsyncController.create(i: Int, e: Int, n: Int, b: Int)
+POST     /coordinates/                   controllers.GpsAsyncController.createFromJson
+GET      /coordinates                    controllers.GpsAsyncController.list()

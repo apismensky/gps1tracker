@@ -10,9 +10,11 @@ libraryDependencies ++= Seq(
   jdbc,
   cache,
   ws,
+  "org.reactivemongo" %% "play2-reactivemongo" % "0.11.12",
+  "org.mongodb.scala" %% "mongo-scala-driver" % "1.1.1",
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
 )
 
-libraryDependencies += "org.mongodb.scala" %% "mongo-scala-driver" % "1.0.1"
-
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+
+scalacOptions in ThisBuild ++= Seq("-feature", "-language:postfixOps")
