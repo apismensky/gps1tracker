@@ -12,17 +12,17 @@ class GpsController @Inject()(config: Configuration) extends Controller {
     val json = request.body.asJson.getOrElse(throw new IllegalArgumentException("Invalid request body - JSON expected"))
     val dbUrl = config.getString("mongodb.uri").getOrElse(throw new IllegalStateException("Configure mongodb.uriin application.conf"))
 
-    println(s"dbUrl: $dbUrl")
+    //println(s"dbUrl: $dbUrl")
   	val mongoClient = MongoClient(dbUrl)
 
   	val database= mongoClient.getDatabase("heroku_60trxdkd")
   	val collection = database.getCollection("gps1records")
   	val ts = System.currentTimeMillis / 1000
     println("JSON:"+json.toString)
-    val i = (json \ "i").as[Int]
-    val e = (json \ "e").as[Int]
-    val n = (json \ "n").as[Int]
-    val b = (json \ "b").as[Int]
+    val i = (json \ "i").as[Long]
+    val e = (json \ "e").as[Long]
+    val n = (json \ "n").as[Long]
+    val b = (json \ "b").as[Long]
     val id = i + "-" + ts.toString
     val doc = Document("_id" -> id, "ts" -> ts.toInt, "i" -> i, "e" -> e, "n" -> n, "b" -> b)
     val observable = collection.insertOne(doc)
