@@ -21,10 +21,10 @@ class GpsAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impli
 
   def coordinatedFuture: Future[JSONCollection] = database.map(_.collection[JSONCollection]("gps1records"))
 
-  def create(i: Int,
-             e: Int,
-             n: Int,
-             b: Int) = Action.async {
+  def create(i: String,
+             e: String,
+             n: String,
+             b: String) = Action.async {
     for {
       coordinates <- coordinatedFuture
       lastError <- coordinates.insert(Coordinates(i, e, n, b))

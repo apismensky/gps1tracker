@@ -19,10 +19,10 @@ class GpsController @Inject()(config: Configuration) extends Controller {
   	val collection = database.getCollection("gps1records")
   	val ts = System.currentTimeMillis / 1000
     println("JSON:"+json.toString)
-    val i = (json \ "i").as[Long]
-    val e = (json \ "e").as[Long]
-    val n = (json \ "n").as[Long]
-    val b = (json \ "b").as[Long]
+    val i = (json \ "i").as[String]
+    val e = (json \ "e").as[String]
+    val n = (json \ "n").as[String]
+    val b = (json \ "b").as[String]
     val id = i + "-" + ts.toString
     val doc = Document("_id" -> id, "ts" -> ts.toInt, "i" -> i, "e" -> e, "n" -> n, "b" -> b)
     val observable = collection.insertOne(doc)
@@ -59,6 +59,19 @@ class GpsController @Inject()(config: Configuration) extends Controller {
     //println(builder.toString())
 
     Created(builder.toString())
+
+  }
+
+  def delete = Action { request =>
+
+    val dbUrl = config.getString("mongodb.uri").getOrElse(throw new IllegalStateException("Configure mongodb.uriin application.conf"))
+    val mongoClient = MongoClient(dbUrl)
+
+    val database= mongoClient.getDatabase("heroku_60trxdkd")
+    val collection = database.getCollection("gps1records")
+    collection.drop()
+
+    Created("OK")
 
   }
 
