@@ -14,7 +14,6 @@ GET     /buildInfo                  controllers.HealthController.buildInfo()
 
 POST    /gps                        controllers.GpsController.save
 GET     /gps                        controllers.GpsController.read
-DELETE  /gps                        controllers.GpsController.delete
 
 POST     /coordinates/add                controllers.GpsAsyncController.create(i: String, e: String, n: String, b: String)
 POST     /coordinates/                   controllers.GpsAsyncController.createFromJson

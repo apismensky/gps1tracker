@@ -45,34 +45,25 @@ class GpsController @Inject()(config: Configuration) extends Controller {
     val database= mongoClient.getDatabase("heroku_60trxdkd")
     val collection = database.getCollection("gps1records")
 
+    val futureRecords: Future[Seq[Document]] = collection.find().toFuture()
+
+    futureRecords onComplete {
+        case Success(recs) => Created(recs.toJson())
+        case Failure(t) => Created("Failure: "+t.getMessage)
+    }
+
+    /*
     val builder = StringBuilder.newBuilder
     var done = false;
-
     collection.find().subscribe(
       (doc: Document) => builder.append(doc.toJson()+", \n"),              // onNext
       (error: Throwable) => println(s"Query failed: ${error.getMessage}"), // onError
       () => done = true // Complete
     )
-
     while(!done) { Thread.sleep(100) }
-
-    //println(builder.toString())
-
     Created(builder.toString())
-
+    */
   }
 
-  def delete = Action { request =>
-
-    val dbUrl = config.getString("mongodb.uri").getOrElse(throw new IllegalStateException("Configure mongodb.uriin application.conf"))
-    val mongoClient = MongoClient(dbUrl)
-
-    val database= mongoClient.getDatabase("heroku_60trxdkd")
-    val collection = database.getCollection("gps1records")
-    collection.drop()
-
-    Created("OK")
-
-  }
 
 }
