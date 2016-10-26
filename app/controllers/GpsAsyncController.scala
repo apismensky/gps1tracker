@@ -51,8 +51,8 @@ class GpsAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impli
  // curl http://localhost:9000/coordinates
   def list() = Action.async {
      coordinatedFuture.flatMap {
-      _.find(Json.obj()).cursor[Coordinates](ReadPreference.primary).collect[List]()
-    } map { c => Ok(Json.toJson(c))  }
+      _.find(Json.obj()).cursor[JsObject](ReadPreference.primary).collect[List]().map(list => Ok(Json.toJson(list)))
+    }
   }
 }
 
