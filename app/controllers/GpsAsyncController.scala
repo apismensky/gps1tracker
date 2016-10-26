@@ -32,13 +32,27 @@ class GpsAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impli
       Ok("Mongo LastError: %s".format(lastError))
   }
 
-  // curl -H "Content-Type: application/json" -X POST -d '{"i":22,"e":33,"n":663,"b":46}' http://localhost:9000/coordinates/
+  // curl -H "Content-Type: application/json" -X POST -d '{"i":"00000003","e":"06036.5161E","n":"5650.1863N","b":"98"}' http://localhost:9000/gps
   def createFromJson = Action.async(parse.json) { request =>
     Json.fromJson[Coordinates](request.body) match {
       case JsSuccess(coordinates, _) =>
         for {
           coords <- coordinatedFuture
-          lastError <- coords.insert(coordinates)
+          lastError <- {
+            val ts = System.currentTimeMillis / 1000
+            val _id = coordinates.i + "-" + ts.toString
+
+            val newRecord = Json.obj(
+              "_id" -> _id,
+              "ts" -> ts.toInt,
+              "i" -> coordinates.i,
+              "e" -> coordinates.e,
+              "n" -> coordinates.n,
+              "b" -> coordinates.b
+            )
+
+            coords.insert(newRecord)
+          }
         } yield {
           Logger.debug(s"Successfully inserted with LastError: $lastError")
           Created("Created 1 record")
@@ -48,11 +62,27 @@ class GpsAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impli
     }
   }
 
- // curl http://localhost:9000/coordinates
+ // curl http://localhost:9000/gps
   def list() = Action.async {
      coordinatedFuture.flatMap {
       _.find(Json.obj()).cursor[JsObject](ReadPreference.primary).collect[List]().map(list => Ok(Json.toJson(list)))
     }
+  }
+
+  // curl http://localhost:9000/gps/6254614
+  def getLastEntryById(id: String) = Action.async { request =>
+    coordinatedFuture.flatMap(gpsRecordsCollection => {
+      gpsRecordsCollection.find(Json.obj("i" -> id)).sort(Json.obj("ts" -> -1)).one[JsObject](ReadPreference.primary).map(record => Ok(Json.toJson(record)))
+    })
+  }
+
+  // curl http://localhost:9000/gps/6254614/1473065721
+  def getLastEntriesByIdAndTimestamp(id: String, timestamp: Int) = Action.async { request =>
+    val nowTimestamp: Int = (System.currentTimeMillis / 1000).toInt
+
+    coordinatedFuture.flatMap(gpsRecordsCollection => {
+      gpsRecordsCollection.find(Json.obj("i" -> id, "ts" -> Json.obj("$gte" -> timestamp, "$lte" -> nowTimestamp))).cursor[JsObject](ReadPreference.primary).collect[List]().map(records => Ok(Json.toJson(records)))
+    })
   }
 }
 

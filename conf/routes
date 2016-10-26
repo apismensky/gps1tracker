@@ -12,9 +12,12 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 
 GET     /buildInfo                  controllers.HealthController.buildInfo()
 
-POST    /gps                        controllers.GpsController.save
-GET     /gps                        controllers.GpsController.read
+POST    /gps                        controllers.GpsAsyncController.createFromJson
+GET     /gps                        controllers.GpsAsyncController.list
+GET     /gps/:id                    controllers.GpsAsyncController.getLastEntryById(id: String)
+GET     /gps/:id/:timestamp         controllers.GpsAsyncController.getLastEntriesByIdAndTimestamp(id: String, timestamp: Int)
 
-POST     /coordinates/add                controllers.GpsAsyncController.create(i: String, e: String, n: String, b: String)
-POST     /coordinates/                   controllers.GpsAsyncController.createFromJson
-GET      /coordinates                    controllers.GpsAsyncController.list()
+# TODO: Remove completely after /gps routes code approval
+#POST     /coordinates/add                controllers.GpsAsyncController.create(i: String, e: String, n: String, b: String)
+#POST     /coordinates/                   controllers.GpsAsyncController.createFromJson
+#GET      /coordinates                    controllers.GpsAsyncController.list()
