@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>GPS1Tracker Demo</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      	var map;
+        var eReg = new RegExp("\d{5}\.\d{4}(W|E)"); //Longitude: 11145.7371W
+	var nReg = new RegExp("\d{4}\.\d{4}(S|N)"); //Latitude:  4021.8815N
+	function initMap() {
+          map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 40.7608, lng: -111.8910},
+            zoom: 8
+          });
+	  $.getJSON("http://gps1tracker.herokuapp.com/gps/10000001", function( data ) {
+  		var lat = 0; 
+		var lng = 0;
+		var timestamp;
+  		$.each( data, function( key, val ) {
+    			if(key=="e") { // Longitude
+				var e = val;
+				if(eReg.test(e)) {  
+				  var dd = e.substring(0,2);
+				  var mm = e.substring(2,e.length-1);
+				  var we = e.substring(e.length-1);
+				  lng = parseInt(dd) + parseFloat(mm)/60;
+				  if(we=='W') lng = -lng;
+				} else {
+				  alert('Bad longitude value: '+e);
+				}
+			} else if(key=="n") { // Latitude
+				var n = val;
+				if(nReg.test(n)) {  
+				  var dd = n.substring(0,2);
+				  var mm = n.substring(2,n.length-1);
+				  var ns = n.substring(n.length-1);
+				  lat = parseInt(dd) + parseFloat(mm)/60;
+				  if(ns=='S') lat = -lat;	
+				} else {
+				  alert('Bad latitude value: '+n);
+				}
+			} else if(key=="ts") {
+				timestamp = val;
+			}
+  		}); 
+  		//Set marker:
+		var position = {lat: lat, lng: lng};
+		var marker = new google.maps.Marker({
+          		position: position,
+          		map: map,
+          		title: 'lat: '+lat+', lng: '+lng
+        	});
+	});
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXbLHs_OX8buHMtFRrRUttokJ5uRJ1elw&callback=initMap"
+    async defer></script>
+  </body>
+</html>
