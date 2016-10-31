@@ -31,11 +31,47 @@
     	</style>
     </head>
     <body>
-        @* And here's where we render the `Html` object containing
-         * the page content. *@
-        <div id="map"></div>
+      <div id="menu">
+        <table><tr><td>GPS1Tracker</td>
+        <td><input type="button" value="1 hour" onClick="loadRecords(60*60*1000)"></td>
+        <td><input type="button" value="6 hours" onClick="loadRecords(6*60*60*1000)"></td>
+        <td><input type="button" value="1 day" onClick="loadRecords(24*60*60*1000)"></td>
+        <td><input type="button" value="6 days" onClick="loadRecords(6*24*60*60*1000)"></td>
+        </tr></table>
+      </div>
     	<script>
-      	var map;
+  var map;
+  function loadRecords(DIFF_timestamp) {
+    var tsMarker = Date.now() - DIFF_timestamp;
+    var positionPath = [];
+    $.getJSON("http://gps1tracker.herokuapp.com/gps/10000001/"+tsMarker, function( data ) {
+      var lat = 0; 
+      var lng = 0;
+      var timestamp;
+      $.each( data, function( key, val ) {
+        if(key=="e") { // Longitude
+          var e = val;
+          if(e!='000000000') {
+           lng = convertToLng(e);
+          } 
+        } else if(key=="n") { // Latitude
+          var n = val;
+          if(n!='000000000') {
+           lat = convertToLat(n);
+          } 
+        } else if(key=="ts") {
+          timestamp = val;
+        }
+      });
+      if(lat!=0&&lng!=0) {
+        var position = {};
+        position["lat"] = lat;
+        position["lng"] = lng;
+        positionPath.push(position);
+      }
+    }
+    
+  }
 	function timeConverter(UNIX_timestamp){
 	  var a = new Date(UNIX_timestamp * 1000);
 	  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -48,54 +84,63 @@
 	  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
 	  return time;
 	}
+  function convertToLng(e) {
+    var dd = e.substring(0,3);
+    var mm = e.substring(3,e.length-1);
+    var we = e.substring(e.length-1);
+    lng = parseInt(dd) + parseFloat(mm)/60;
+    if(we=='W') lng = -lng;
+    return lng;
+  }
+  function convertToLat(n) {
+    var dd = n.substring(0,2);
+    var mm = n.substring(2,n.length-1);
+    var ns = n.substring(n.length-1);
+    lat = parseInt(dd) + parseFloat(mm)/60;
+    if(ns=='S') lat = -lat;
+    return lat;
+  }
 	function initMap() {
 	  var defaultCenter = {lat: 40.7608, lng: -111.8910};
 	  $.getJSON("http://gps1tracker.herokuapp.com/gps/10000001", function( data ) {
   		var lat = 0; 
-		var lng = 0;
-		var timestamp;
+		  var lng = 0;
+		  var timestamp;
   		$.each( data, function( key, val ) {
-    			if(key=="e") { // Longitude
-				var e = val;
-				if(e!='000000000') {
-					var dd = e.substring(0,3);
-					var mm = e.substring(3,e.length-1);
-					var we = e.substring(e.length-1);
-					lng = parseInt(dd) + parseFloat(mm)/60;
-					if(we=='W') lng = -lng;
-				}
-			} else if(key=="n") { // Latitude
-				var n = val;
-				if(n!='000000000') {
-					var dd = n.substring(0,2);
-					var mm = n.substring(2,n.length-1);
-					var ns = n.substring(n.length-1);
-					lat = parseInt(dd) + parseFloat(mm)/60;
-					if(ns=='S') lat = -lat;
-				}	
-			} else if(key=="ts") {
-				timestamp = val;
-			}
+    		if(key=="e") { // Longitude
+				  var e = val;
+				  if(e!='000000000') {
+					 lng = convertToLng(e);
+				  } 
+			  } else if(key=="n") { // Latitude
+				  var n = val;
+				  if(n!='000000000') {
+					 lat = convertToLat(n);
+				  }	
+			  } else if(key=="ts") {
+				  timestamp = val;
+			  }
   		}); 
   		if(lat==0||lng==0) {
-  	          map = new google.maps.Map(document.getElementById('map'), {
-        	    center: defaultCenter,
-          	    zoom: 8
-          	  });
-		} else {
-		  var position = {lat: lat, lng: lng};
-		  map = new google.maps.Map(document.getElementById('map'), {
-          	  	center: position,
-          	  	zoom: 15
-          	  });
-		  var marker = new google.maps.Marker({
-          		position: position,
-          		map: map,
-          		title: 'Last seen: '+timeConverter(timestamp)
-        	  });
-		}
-	});
-      }
+  	    map = new google.maps.Map(document.getElementById('map'), {
+          center: defaultCenter,
+          zoom: 8
+        });
+        alert('Current Location is not available.');
+		  } else {
+		    var position = {lat: lat, lng: lng};
+		    map = new google.maps.Map(document.getElementById('map'), {
+          center: position,
+          zoom: 15
+        });
+		    var marker = new google.maps.Marker({
+          position: position,
+          map: map,
+          title: 'Last seen: '+timeConverter(timestamp)
+        });
+		  }
+	  });
+    }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXbLHs_OX8buHMtFRrRUttokJ5uRJ1elw&callback=initMap"
     async defer></script>
