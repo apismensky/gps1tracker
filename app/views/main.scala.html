@@ -33,17 +33,18 @@
     <body>
       <div id="menu">
         <table><tr><td>GPS1Tracker</td>
-        <td><input type="button" value="1 hour" onClick="loadRecords(60*60*1000)"></td>
-        <td><input type="button" value="6 hours" onClick="loadRecords(6*60*60*1000)"></td>
-        <td><input type="button" value="1 day" onClick="loadRecords(24*60*60*1000)"></td>
-        <td><input type="button" value="6 days" onClick="loadRecords(6*24*60*60*1000)"></td>
+        <td><input type="button" value="1 hour" onClick="loadRecords(60*60)"></td>
+        <td><input type="button" value="6 hours" onClick="loadRecords(6*60*60)"></td>
+        <td><input type="button" value="1 day" onClick="loadRecords(24*60*60)"></td>
+        <td><input type="button" value="6 days" onClick="loadRecords(6*24*60*60)"></td>
         </tr></table>
       </div>
       <div id="map"></div>
     <script>
   var map;
   function loadRecords(DIFF_timestamp) {
-    var tsMarker = Date.now() - DIFF_timestamp;
+    var timestamp = parseInt(Date.now()/1000);
+    var tsMarker = timestamp - DIFF_timestamp;
     var positionPath = [];
     $.getJSON("http://gps1tracker.herokuapp.com/gps/10000001/"+tsMarker, function( data ) {
       var lat = 0; 
