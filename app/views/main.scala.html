@@ -49,10 +49,7 @@
 	  return time;
 	}
 	function initMap() {
-          map = new google.maps.Map(document.getElementById('map'), {
-            center: {lat: 40.7608, lng: -111.8910},
-            zoom: 8
-          });
+	  var defaultCenter = {lat: 40.7608, lng: -111.8910};
 	  $.getJSON("http://gps1tracker.herokuapp.com/gps/10000001", function( data ) {
   		var lat = 0; 
 		var lng = 0;
@@ -60,29 +57,43 @@
   		$.each( data, function( key, val ) {
     			if(key=="e") { // Longitude
 				var e = val;
-				var dd = e.substring(0,3);
-				var mm = e.substring(3,e.length-1);
-				var we = e.substring(e.length-1);
-				lng = parseInt(dd) + parseFloat(mm)/60;
-				if(we=='W') lng = -lng;
+				if(e!='000000000') {
+					var dd = e.substring(0,3);
+					var mm = e.substring(3,e.length-1);
+					var we = e.substring(e.length-1);
+					lng = parseInt(dd) + parseFloat(mm)/60;
+					if(we=='W') lng = -lng;
+				}
 			} else if(key=="n") { // Latitude
 				var n = val;
-				var dd = n.substring(0,2);
-				var mm = n.substring(2,n.length-1);
-				var ns = n.substring(n.length-1);
-				lat = parseInt(dd) + parseFloat(mm)/60;
-				if(ns=='S') lat = -lat;	
+				if(n!='000000000') {
+					var dd = n.substring(0,2);
+					var mm = n.substring(2,n.length-1);
+					var ns = n.substring(n.length-1);
+					lat = parseInt(dd) + parseFloat(mm)/60;
+					if(ns=='S') lat = -lat;
+				}	
 			} else if(key=="ts") {
 				timestamp = val;
 			}
   		}); 
-  		//Set marker:
-		var position = {lat: lat, lng: lng};
-		var marker = new google.maps.Marker({
+  		if(lat==0||lng==0) {
+  	          map = new google.maps.Map(document.getElementById('map'), {
+        	    center: defaultCenter,
+          	    zoom: 8
+          	  });
+		} else {
+		  var position = {lat: lat, lng: lng};
+		  map = new google.maps.Map(document.getElementById('map'), {
+          	  	center: position,
+          	  	zoom: 15
+          	  });
+		  var marker = new google.maps.Marker({
           		position: position,
           		map: map,
-          		title: 'Time: '+timeConverter(timestamp)
-        	});
+          		title: 'Last seen: '+timeConverter(timestamp)
+        	  });
+		}
 	});
       }
     </script>
