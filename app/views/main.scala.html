@@ -39,7 +39,8 @@
         <td><input type="button" value="6 days" onClick="loadRecords(6*24*60*60*1000)"></td>
         </tr></table>
       </div>
-    	<script>
+      <div id="map"></div>
+    <script>
   var map;
   function loadRecords(DIFF_timestamp) {
     var tsMarker = Date.now() - DIFF_timestamp;
