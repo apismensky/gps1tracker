@@ -33,15 +33,25 @@
     <body>
       <div id="menu">
         <table><tr><td>GPS1Tracker</td>
-        <td><input type="button" value="1 hour" onClick="loadRecords(60*60)"></td>
-        <td><input type="button" value="6 hours" onClick="loadRecords(6*60*60)"></td>
-        <td><input type="button" value="1 day" onClick="loadRecords(24*60*60)"></td>
-        <td><input type="button" value="6 days" onClick="loadRecords(6*24*60*60)"></td>
+        <td><input type="button" value="1 hour" onClick="loadRecords(216000)"></td>
+        <td><input type="button" value="6 hours" onClick="loadRecords(1296000)"></td>
+        <td><input type="button" value="1 day" onClick="loadRecords(5184000)"></td>
+        <td><input type="button" value="6 days" onClick="loadRecords(31104000)"></td>
+        <td><input type="button" value="clear" onClick="clearMap()"></td>
         </tr></table>
       </div>
       <div id="map"></div>
     <script>
   var map;
+  var pathPolyline;
+  var marker;
+
+  function clearMap() {
+    if(pathPolyline) {
+      pathPolyline.setMap(null);
+    }
+  }
+  
   function loadRecords(DIFF_timestamp) {
     var timestamp = parseInt(Date.now()/1000);
     var tsMarker = timestamp - DIFF_timestamp;
@@ -49,7 +59,7 @@
     $.getJSON("http://gps1tracker.herokuapp.com/gps/10000001/"+tsMarker, function( data ) {
       var lat = 0; 
       var lng = 0;
-      var timestamp;
+      var timestamp = 0;
       $.each( data, function( key, val ) {
         if(key=="e") { // Longitude
           var e = val;
@@ -64,16 +74,21 @@
         } else if(key=="ts") {
           timestamp = val;
         }
+        if(lat!=0&&lng!=0&&timestamp!=0) {
+          var position = {};
+          position["lat"] = lat;
+          position["lng"] = lng;
+          positionPath.push(position);
+          console.log(timestamp+'=> lat: '+lat+', lng: '+lng);
+          lat=0;
+          lng=0;
+          timestamp=0;
+        }
       });
-      if(lat!=0&&lng!=0) {
-        var position = {};
-        position["lat"] = lat;
-        position["lng"] = lng;
-        positionPath.push(position);
-      }
     });
+    console.log(positionPath);
     // set position path on a map:
-    var pathPolyline = new google.maps.Polyline({
+    pathPolyline = new google.maps.Polyline({
       path: positionPath,
       geodesic: true,
       strokeColor: '#FF0000',
@@ -82,6 +97,7 @@
     });
     pathPolyline.setMap(map);
   }
+
 	function timeConverter(UNIX_timestamp){
 	  var a = new Date(UNIX_timestamp * 1000);
 	  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -94,6 +110,7 @@
 	  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
 	  return time;
 	}
+
   function convertToLng(e) {
     var dd = e.substring(0,3);
     var mm = e.substring(3,e.length-1);
@@ -102,6 +119,7 @@
     if(we=='W') lng = -lng;
     return lng;
   }
+
   function convertToLat(n) {
     var dd = n.substring(0,2);
     var mm = n.substring(2,n.length-1);
@@ -110,6 +128,7 @@
     if(ns=='S') lat = -lat;
     return lat;
   }
+
 	function initMap() {
 	  var defaultCenter = {lat: 40.7608, lng: -111.8910};
 	  $.getJSON("http://gps1tracker.herokuapp.com/gps/10000001", function( data ) {
@@ -143,7 +162,7 @@
           center: position,
           zoom: 15
         });
-		    var marker = new google.maps.Marker({
+		    marker = new google.maps.Marker({
           position: position,
           map: map,
           title: 'Last seen: '+timeConverter(timestamp)
@@ -151,6 +170,7 @@
 		  }
 	  });
     }
+
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXbLHs_OX8buHMtFRrRUttokJ5uRJ1elw&callback=initMap"
     async defer></script>
