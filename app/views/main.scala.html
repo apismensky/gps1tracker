@@ -53,6 +53,7 @@
   }
 
   function loadRecords(DIFF_timestamp) {
+    clearMap();
     var timestamp = parseInt(Date.now()/1000);
     var tsMarker = timestamp - DIFF_timestamp;
     var positionPath = [];
