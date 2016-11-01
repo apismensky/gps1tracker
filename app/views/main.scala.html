@@ -51,7 +51,7 @@
       pathPolyline.setMap(null);
     }
   }
-  
+
   function loadRecords(DIFF_timestamp) {
     var timestamp = parseInt(Date.now()/1000);
     var tsMarker = timestamp - DIFF_timestamp;
@@ -60,29 +60,16 @@
       var lat = 0; 
       var lng = 0;
       var timestamp = 0;
-      $.each( data, function( key, val ) {
-        if(key=="e") { // Longitude
-          var e = val;
-          if(e!='000000000') {
-           lng = convertToLng(e);
-          } 
-        } else if(key=="n") { // Latitude
-          var n = val;
-          if(n!='000000000') {
-           lat = convertToLat(n);
-          } 
-        } else if(key=="ts") {
-          timestamp = val;
-        }
-        if(lat!=0&&lng!=0&&timestamp!=0) {
+      $.each( data, function( key, rec ) {
+        if(rec.e!='000000000' && rec.n!='000000000') {
+          lng = convertToLng(rec.e);
+          lat = convertToLat(rec.n);
+          timestamp = rec.ts;
           var position = {};
           position["lat"] = lat;
           position["lng"] = lng;
           positionPath.push(position);
           console.log(timestamp+'=> lat: '+lat+', lng: '+lng);
-          lat=0;
-          lng=0;
-          timestamp=0;
         }
       });
     });
