@@ -22,6 +22,15 @@
       	#map {
         	height: 100%;
       	}
+	.menu {
+    		position: absolute;
+    		top:0;
+    		right:0; 
+    		height:30px;
+    		background:#d8d8d8;
+    		margin: 0px;
+    		z-index: 10;
+	}
       	/* Optional: Makes the sample page fill the window. */
       	html, body {
         	height: 100%;
@@ -31,8 +40,8 @@
     	</style>
     </head>
     <body>
-      <div id="menu">
-        <table><tr><td>GPS1Tracker</td>
+      <div class="menu">
+        <table><tr><td><img src="@routes.Assets.versioned("images/logo.png")" alt="GPS1Tracker" height="20px"></td>
         <td><input type="button" value="1 hour" onClick="loadRecords(3600)"></td>
         <td><input type="button" value="6 hours" onClick="loadRecords(21600)"></td>
         <td><input type="button" value="1 day" onClick="loadRecords(86400)"></td>
