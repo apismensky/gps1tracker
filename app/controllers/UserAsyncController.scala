@@ -1,0 +1,124 @@
+package controllers
+
+import javax.inject._
+
+import models.{Device, User}
+import org.mindrot.jbcrypt.BCrypt
+import play.api.libs.json._
+import play.api.mvc._
+import play.modules.reactivemongo._
+import reactivemongo.api.ReadPreference
+import reactivemongo.bson.BSONObjectID
+import reactivemongo.play.json._
+import reactivemongo.play.json.collection._
+
+import scala.concurrent.{ExecutionContext, Future}
+
+
+@Singleton
+class UserAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implicit exec: ExecutionContext)
+  extends Controller with MongoController with ReactiveMongoComponents {
+
+  final val userProjection: JsObject = Json.obj("_id" -> 1, "firstName" -> 1, "lastName" -> 1, "devices" -> 1)
+
+  def usersCollectionFuture: Future[JSONCollection] = database.map(_.collection[JSONCollection]("users"))
+
+  def index = Action.async { request =>
+    usersCollectionFuture.flatMap(usersCollection => {
+
+      usersCollection.find(Json.obj(), userProjection).cursor[JsObject](ReadPreference.primary).collect[List]().map(list => Ok(Json.toJson(list)))
+
+    })
+  }
+
+  def create = Action.async(parse.json) { request =>
+    Json.fromJson[User](request.body) match {
+      case JsSuccess(userData, _) => {
+        for {
+          usersCollection <- usersCollectionFuture
+          userId <- {
+            usersCollection.find(
+              Json.obj("email" -> userData.email),
+              Json.obj("_id" -> 1)
+            ).one[JsObject](ReadPreference.primary).map(s => s)
+          }
+          result <- {
+            userId match {
+              case Some(_) => Future.successful(BadRequest("User Exists\n"))
+              case None => {
+                val salt = BCrypt.gensalt()
+                val password = BCrypt.hashpw(userData.password, salt)
+
+                val newUser = Json.obj(
+                  "firstName" -> userData.firstName,
+                  "lastName" -> userData.lastName,
+                  "email" -> userData.email,
+                  "password" -> password,
+                  "salt" -> salt,
+                  "devices" -> JsArray(Seq()))
+
+                usersCollection.insert(newUser).map(writeResult => Ok("User Created\n"))
+
+              }
+            }
+          }
+        } yield {
+          result
+        }
+      }
+      case JsError(errors) => {
+        Future.successful(BadRequest("Invalid Json Input\n"))
+      }
+    }
+  }
+
+  def getUser(id: String) = Action.async { request =>
+    for {
+      usersCollection <- usersCollectionFuture
+      userOption <- usersCollection.find(Json.obj("_id" -> BSONObjectID(id)), userProjection).one[JsObject](ReadPreference.primary).map(s => s)
+    } yield {
+      val user = userOption match {
+        case Some(user: JsObject) => user
+        case None => Json.obj()
+      }
+
+      Ok(user)
+    }
+  }
+
+  def updateUserDevices(id: String) = Action.async(parse.json) { request =>
+    (request.body \ "devices").asOpt[JsArray] match {
+      case None => Future.successful(BadRequest("Invalid Json Input - No devices\n"))
+      case Some(devices: JsArray) => {
+        Json.fromJson[Vector[Device]](devices) match {
+          case JsSuccess(deviceVector: Vector[Device], _) => {
+            for {
+              usersCollection <- usersCollectionFuture
+              result <- {
+                usersCollection.findAndUpdate(
+                  Json.obj("_id" -> BSONObjectID(id)),
+                  Json.obj("$set" -> Json.obj("devices" -> deviceVector)),
+                  fetchNewObject = true,
+                  fields = Some(userProjection))
+                .map(_.result[JsObject])
+              }
+            } yield {
+              val user = result match {
+                case Some(user: JsObject) => user
+                case None => Json.obj()
+              }
+
+              Ok(user)
+            }
+          }
+          case JsError(errors) => {
+            Future.successful(BadRequest("Invalid Json Input - Malformed device structure\n"))
+          }
+        }
+      }
+    }
+  }
+
+}
+
+

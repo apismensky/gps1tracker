@@ -17,6 +17,14 @@ GET     /gps                        controllers.GpsAsyncController.list
 GET     /gps/:id                    controllers.GpsAsyncController.getLastEntryById(id: String)
 GET     /gps/:id/:timestamp         controllers.GpsAsyncController.getLastEntriesByIdAndTimestamp(id: String, timestamp: Int)
 
+# User related endpoints
+GET     /user                       controllers.UserAsyncController.index
+GET     /user/:id                   controllers.UserAsyncController.getUser(id: String)
+POST    /user                       controllers.UserAsyncController.create
+# User devices endpoint
+POST    /user/:id/devices           controllers.UserAsyncController.updateUserDevices(id: String)
+
+
 # TODO: Remove completely after /gps routes code approval
 #POST     /coordinates/add                controllers.GpsAsyncController.create(i: String, e: String, n: String, b: String)
 #POST     /coordinates/                   controllers.GpsAsyncController.createFromJson
