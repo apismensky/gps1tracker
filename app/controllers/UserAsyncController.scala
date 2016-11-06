@@ -19,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class UserAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implicit exec: ExecutionContext)
   extends Controller with MongoController with ReactiveMongoComponents {
 
-  final val userProjection: JsObject = Json.obj("_id" -> 1, "firstName" -> 1, "lastName" -> 1, "devices" -> 1)
+  final val userProjection: JsObject = Json.obj("_id" -> 1, "firstName" -> 1, "lastName" -> 1, "devices" -> 1, "email" -> 1)
 
   def usersCollectionFuture: Future[JSONCollection] = database.map(_.collection[JSONCollection]("users"))
 
