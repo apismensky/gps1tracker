@@ -54,6 +54,7 @@
   var map;
   var pathPolyline;
   var marker;
+  var trackerId = "10000001";
 
   function clearMap() {
     if(pathPolyline) {
@@ -66,7 +67,7 @@
     var timestamp = parseInt(Date.now()/1000);
     var tsMarker = timestamp - DIFF_timestamp;
     var positionPath = [];
-    $.getJSON("http://gps1tracker.herokuapp.com/gps/10000001/"+tsMarker, function( data ) {
+    $.getJSON("http://gps1tracker.herokuapp.com/gps/"+trackerId+"/"+tsMarker, function( data ) {
       var lat = 0; 
       var lng = 0;
       var timestamp = 0;
@@ -126,7 +127,7 @@
 
 	function initMap() {
 	  var defaultCenter = {lat: 40.7608, lng: -111.8910};
-	  $.getJSON("http://gps1tracker.herokuapp.com/gps/10000001", function( data ) {
+	  $.getJSON("http://gps1tracker.herokuapp.com/gps/"+trackerId, function( data ) {
   		var lat = 0; 
 		  var lng = 0;
 		  var timestamp;
