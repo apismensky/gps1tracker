@@ -24,6 +24,10 @@ POST    /user                       controllers.UserAsyncController.create
 # User devices endpoint
 POST    /user/:id/devices           controllers.UserAsyncController.updateUserDevices(id: String)
 
+# Admin related endpoints
+GET     /admin                      controllers.AdminAsyncController.index
+GET     /admin/:id                  controllers.AdminAsyncController.editUser(id: String)
+
 
 # TODO: Remove completely after /gps routes code approval
 #POST     /coordinates/add                controllers.GpsAsyncController.create(i: String, e: String, n: String, b: String)

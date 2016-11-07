@@ -26,7 +26,15 @@ class UserAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impl
   def index = Action.async { request =>
     usersCollectionFuture.flatMap(usersCollection => {
 
-      usersCollection.find(Json.obj(), userProjection).cursor[JsObject](ReadPreference.primary).collect[List]().map(list => Ok(Json.toJson(list)))
+      usersCollection
+        .find(Json.obj(), userProjection)
+        .cursor[JsObject](ReadPreference.primary)
+        .collect[Vector]()
+        .map(list => {
+          val resultVector = list.map(user => user ++ Json.obj("_id" -> (user \ "_id").as[BSONObjectID].stringify))
+
+          Ok(Json.obj("objects" -> Json.toJson(resultVector)))
+        })
 
     })
   }
@@ -44,7 +52,7 @@ class UserAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impl
           }
           result <- {
             userId match {
-              case Some(_) => Future.successful(BadRequest("User Exists\n"))
+              case Some(_) => Future.successful(BadRequest(Json.obj("msg" -> "User Exists")))
               case None => {
                 val salt = BCrypt.gensalt()
                 val password = BCrypt.hashpw(userData.password, salt)
@@ -57,7 +65,7 @@ class UserAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impl
                   "salt" -> salt,
                   "devices" -> JsArray(Seq()))
 
-                usersCollection.insert(newUser).map(writeResult => Ok("User Created\n"))
+                usersCollection.insert(newUser).map(writeResult => Ok(Json.obj("msg" -> "User Created")))
 
               }
             }
@@ -67,7 +75,7 @@ class UserAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impl
         }
       }
       case JsError(errors) => {
-        Future.successful(BadRequest("Invalid Json Input\n"))
+        Future.successful(BadRequest(Json.obj("msg" -> "Invalid Json Input")))
       }
     }
   }
@@ -88,7 +96,7 @@ class UserAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impl
 
   def updateUserDevices(id: String) = Action.async(parse.json) { request =>
     (request.body \ "devices").asOpt[JsArray] match {
-      case None => Future.successful(BadRequest("Invalid Json Input - No devices\n"))
+      case None => Future.successful(BadRequest(Json.obj("msg" -> "Invalid Json Input - No devices")))
       case Some(devices: JsArray) => {
         Json.fromJson[Vector[Device]](devices) match {
           case JsSuccess(deviceVector: Vector[Device], _) => {
@@ -112,7 +120,7 @@ class UserAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impl
             }
           }
           case JsError(errors) => {
-            Future.successful(BadRequest("Invalid Json Input - Malformed device structure\n"))
+            Future.successful(BadRequest(Json.obj("msg" -> "Invalid Json Input - Malformed device structure")))
           }
         }
       }
