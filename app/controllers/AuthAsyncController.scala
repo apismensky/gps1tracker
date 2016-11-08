@@ -31,7 +31,20 @@ class AuthAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impl
       val helpers = new Helpers
       val plainPassword = helpers.decryptUserPassword(encryptedPassword = password)
 
-      Future.successful(Ok(Json.obj("password" -> plainPassword)))
+      val username = (request.body \ "username").as[String]
+
+      adminsCollection.find(Json.obj("username" -> username)).one[JsObject](ReadPreference.primary).map {
+        case Some(user: JsObject) => {
+          val password = BCrypt.hashpw(plainPassword, (user \ "salt").as[String])
+
+          if (password.equals((user \ "password").as[String])) {
+            Ok(Json.obj("msg" -> "Success"))
+          } else {
+            BadRequest(Json.obj("msg" -> "Wrong credentials"))
+          }
+        }
+        case None => BadRequest(Json.obj("msg" -> "Username doesn't exist"))
+      }
 
     })
   }

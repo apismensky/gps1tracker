@@ -36,7 +36,8 @@ j6JU5I7owH/nRR6gmFpySMyTNMVshrr7rQ5qWhzFiVb+ZuJLu1vUSXpIz8zqNQdP
             var publicKey = $("#pubkey").val();
 
             var loginAdmin = function() {
-                var password = $("[name=password]").val();
+                var username = $("[name=username]").val(),
+                    password = $("[name=password]").val();
 
                 console.log(password);
 
@@ -49,7 +50,7 @@ j6JU5I7owH/nRR6gmFpySMyTNMVshrr7rQ5qWhzFiVb+ZuJLu1vUSXpIz8zqNQdP
                 $.ajax({
                     type: "POST",
                     url: "/auth/login",
-                    data: JSON.stringify({password: encrypted}),
+                    data: JSON.stringify({username: username, password: encrypted}),
                     success: function(data) {
                         console.log(data);
                         <!--alert("Successfully updated user's device list");-->
