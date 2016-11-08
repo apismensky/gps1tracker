@@ -23,9 +23,15 @@ class AdminAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(imp
     Ok(views.html.admin())
   }
 
+  def listOfUsers = Action { request =>
+    Ok(views.html.admin_list())
+  }
+
   def editUser(id: String) = Action { request =>
     Ok(views.html.admin_edit(id))
   }
+
+
 
 }
 

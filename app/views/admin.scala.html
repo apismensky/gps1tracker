@@ -1,125 +1,68 @@
 
 <html>
     <head>
-        <title>User List</title>
+        <title>Admin Log In</title>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script src="@routes.Assets.versioned("javascripts/jsencrypt.js")"></script>
     </head>
     <body>
-        <h4>Existing users</h4>
+        <h4>Admin Login Screen</h4>
 
-        <div>
-            <button onclick="toggleUserForm()">Add User</button>
-        </div>
-
-        <div id="userFormDiv" style="display: none;">
+        <div id="adminLoginDiv">
             <table>
                 <tr>
-                    <td>First Name:</td>
-                    <td><input type="text" name="firstName"></td>
-                </tr>
-                <tr>
-                    <td>Last Name:</td>
-                    <td><input type="text" name="lastName"></td>
-                </tr>
-                <tr>
-                    <td>Email:</td>
-                    <td><input type="text" name="email"></td>
+                    <td>Username:</td>
+                    <td><input type="text" name="username"></td>
                 </tr>
                 <tr>
                     <td>Password:</td>
                     <td><input type="password" name="password"></td>
                 </tr>
-                <!--<tr>-->
-                    <!--<td colspan=2>&nbsp;</td>-->
-                <!--</tr>-->
-                <!--<tr>-->
-                    <!--<td>Tracker 1:</td>-->
-                    <!--<td>-->
-                        <!--ID:<input type="text" name="tracker1Id">&nbsp;-->
-                        <!--Nick:<input type="text" name="tracker1Nick"></td>-->
-                <!--</tr>-->
-                <!--<tr>-->
-                    <!--<td>Tracker 2:</td>-->
-                    <!--<td>-->
-                        <!--ID:<input type="text" name="tracker2Id">&nbsp;-->
-                        <!--Nick:<input type="text" name="tracker2Nick"></td>-->
-                <!--</tr>-->
-                <!--<tr>-->
-                    <!--<td>Tracker 3:</td>-->
-                    <!--<td>-->
-                        <!--ID:<input type="text" name="tracker3Id">&nbsp;-->
-                        <!--Nick:<input type="text" name="tracker3Nick"></td>-->
-                <!--</tr>-->
             </table>
-            <button onclick="createNewUser()">Create User</button>
+            <button onclick="loginAdmin()">Login</button>
 
         </div>
-        <table id="userListTable">
-            <thead>
-                <tr>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Email Name</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
+        <textarea id="pubkey" rows="15" cols="65">-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArfy16URDaFMq99YXkj1g
+buV4bEePd2SaS/4aXA+q196IJbII1hj+nRm1DWw29pkDn6shK2sDgJuKiABGKBVb
+0vvTvNL5G9uwfmtU3liWW+LihxWUDekWYlmYz+RkAP6E7eWOkLOv7IAACt+ek5KS
+BHzI2g7lLXXJoMglp1Pa6uiRCv3SWwDzot7vKPDT2t28IS6d5rLEK/kYTP0owhOT
+S+0Bvj7+QZOh2d0qV7bRqhcgTHI6OxBqF0fulxiNu1XdxcEAdgR9Ad3gJPwb5+GS
+j6JU5I7owH/nRR6gmFpySMyTNMVshrr7rQ5qWhzFiVb+ZuJLu1vUSXpIz8zqNQdP
+7wIDAQAB
+-----END PUBLIC KEY-----</textarea>
+
         <script>
-            var getListOfUsers = function() {
-                $.getJSON("/user", function(data) {
-                    <!--console.log(data);-->
-                    var $table = $("#userListTable");
-                    var newRow;
-                    for (var i=0; i < data.objects.length; i++) {
-                        newRow = "<tr><td>" + data.objects[i].firstName +
-                            "</td><td>" + data.objects[i].lastName +
-                            "</td><td>" + data.objects[i].email +
-                            "</td><td><a href='/admin/" + data.objects[i]._id + "'>Add Devices" +
-                            "</a></td></tr>";
-                        $table.append(newRow);
-                    }
-                });
-            };
+            var publicKey = $("#pubkey").val();
 
-            var toggleUserForm = function() {
-                $("#userFormDiv").toggle();
-            };
+            var loginAdmin = function() {
+                var password = $("[name=password]").val();
 
-            var createNewUser = function() {
-                var newUser = {
-                    "firstName": $("[name=firstName]").val(),
-                    "lastName": $("[name=lastName]").val(),
-                    "email": $("[name=email]").val(),
-                    "password": $("[name=password]").val()
-                };
+                console.log(password);
+
+                var encrypt = new JSEncrypt();
+                encrypt.setPublicKey(publicKey);
+                var encrypted = encrypt.encrypt(password);
+
+                console.log(encrypted);
 
                 $.ajax({
                     type: "POST",
-                    url: "/user",
-                    data: JSON.stringify(newUser),
+                    url: "/auth/login",
+                    data: JSON.stringify({password: encrypted}),
                     success: function(data) {
-                        toggleUserForm();
-                        $("#userListTable").find("tr:gt(0)").remove();
-                        getListOfUsers();
+                        console.log(data);
+                        <!--alert("Successfully updated user's device list");-->
                     },
                     error: function(data) {
-                        <!--console.log(data);-->
+                        console.log(data);
+                        <!--alert("Failed to updates user's  device list");-->
                     },
                     contentType: "application/json",
                     dataType: "json"
-                });
-
+                })
             };
 
-            getListOfUsers();
         </script>
     </body>
 </html>

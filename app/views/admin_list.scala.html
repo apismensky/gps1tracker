@@ -1,0 +1,125 @@
+
+<html>
+    <head>
+        <title>User List</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <h4>Existing users</h4>
+
+        <div>
+            <button onclick="toggleUserForm()">Add User</button>
+        </div>
+
+        <div id="userFormDiv" style="display: none;">
+            <table>
+                <tr>
+                    <td>First Name:</td>
+                    <td><input type="text" name="firstName"></td>
+                </tr>
+                <tr>
+                    <td>Last Name:</td>
+                    <td><input type="text" name="lastName"></td>
+                </tr>
+                <tr>
+                    <td>Email:</td>
+                    <td><input type="text" name="email"></td>
+                </tr>
+                <tr>
+                    <td>Password:</td>
+                    <td><input type="password" name="password"></td>
+                </tr>
+                <!--<tr>-->
+                    <!--<td colspan=2>&nbsp;</td>-->
+                <!--</tr>-->
+                <!--<tr>-->
+                    <!--<td>Tracker 1:</td>-->
+                    <!--<td>-->
+                        <!--ID:<input type="text" name="tracker1Id">&nbsp;-->
+                        <!--Nick:<input type="text" name="tracker1Nick"></td>-->
+                <!--</tr>-->
+                <!--<tr>-->
+                    <!--<td>Tracker 2:</td>-->
+                    <!--<td>-->
+                        <!--ID:<input type="text" name="tracker2Id">&nbsp;-->
+                        <!--Nick:<input type="text" name="tracker2Nick"></td>-->
+                <!--</tr>-->
+                <!--<tr>-->
+                    <!--<td>Tracker 3:</td>-->
+                    <!--<td>-->
+                        <!--ID:<input type="text" name="tracker3Id">&nbsp;-->
+                        <!--Nick:<input type="text" name="tracker3Nick"></td>-->
+                <!--</tr>-->
+            </table>
+            <button onclick="createNewUser()">Create User</button>
+
+        </div>
+        <table id="userListTable">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        <script>
+            var getListOfUsers = function() {
+                $.getJSON("/user", function(data) {
+                    <!--console.log(data);-->
+                    var $table = $("#userListTable");
+                    var newRow;
+                    for (var i=0; i < data.objects.length; i++) {
+                        newRow = "<tr><td>" + data.objects[i].firstName +
+                            "</td><td>" + data.objects[i].lastName +
+                            "</td><td>" + data.objects[i].email +
+                            "</td><td><a href='/admin/" + data.objects[i]._id + "'>Add Devices" +
+                            "</a></td></tr>";
+                        $table.append(newRow);
+                    }
+                });
+            };
+
+            var toggleUserForm = function() {
+                $("#userFormDiv").toggle();
+            };
+
+            var createNewUser = function() {
+                var newUser = {
+                    "firstName": $("[name=firstName]").val(),
+                    "lastName": $("[name=lastName]").val(),
+                    "email": $("[name=email]").val(),
+                    "password": $("[name=password]").val()
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: "/user",
+                    data: JSON.stringify(newUser),
+                    success: function(data) {
+                        toggleUserForm();
+                        $("#userListTable").find("tr:gt(0)").remove();
+                        getListOfUsers();
+                    },
+                    error: function(data) {
+                        <!--console.log(data);-->
+                    },
+                    contentType: "application/json",
+                    dataType: "json"
+                });
+
+            };
+
+            getListOfUsers();
+        </script>
+    </body>
+</html>
