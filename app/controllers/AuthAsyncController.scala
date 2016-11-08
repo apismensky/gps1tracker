@@ -2,14 +2,12 @@ package controllers
 
 import javax.inject._
 
-import models.{Device, User}
 import modules.Helpers
 import org.mindrot.jbcrypt.BCrypt
 import play.api.libs.json._
 import play.api.mvc._
 import play.modules.reactivemongo._
 import reactivemongo.api.ReadPreference
-import reactivemongo.bson.BSONObjectID
 import reactivemongo.play.json._
 import reactivemongo.play.json.collection._
 
@@ -28,22 +26,28 @@ class AuthAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impl
     adminsCollectionFuture.flatMap(adminsCollection => {
 
       val password = (request.body \ "password").as[String]
-      val helpers = new Helpers
-      val plainPassword = helpers.decryptUserPassword(encryptedPassword = password)
-
       val username = (request.body \ "username").as[String]
+      val helpers = new Helpers(reactiveMongoApi = reactiveMongoApi)
 
-      adminsCollection.find(Json.obj("username" -> username)).one[JsObject](ReadPreference.primary).map {
-        case Some(user: JsObject) => {
-          val password = BCrypt.hashpw(plainPassword, (user \ "salt").as[String])
+      for {
+        plainPassword <- helpers.decryptUserPassword(encryptedPassword = password)
+        result <- {
+          adminsCollection.find(Json.obj("username" -> username)).one[JsObject](ReadPreference.primary).map {
+            case Some(user: JsObject) => {
+              val password = BCrypt.hashpw(plainPassword, (user \ "salt").as[String])
 
-          if (password.equals((user \ "password").as[String])) {
-            Ok(Json.obj("msg" -> "Success"))
-          } else {
-            BadRequest(Json.obj("msg" -> "Wrong credentials"))
+              if (password.equals((user \ "password").as[String])) {
+                Ok(Json.obj("msg" -> "Success"))
+              } else {
+                BadRequest(Json.obj("msg" -> "Wrong credentials"))
+              }
+            }
+            case None => BadRequest(Json.obj("msg" -> "Username doesn't exist"))
           }
+
         }
-        case None => BadRequest(Json.obj("msg" -> "Username doesn't exist"))
+      } yield {
+        result
       }
 
     })
@@ -52,3 +56,8 @@ class AuthAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impl
 }
 
 
+//      val keyBytes = Files.readAllBytes(new File("private_key.der").toPath)
+//
+//      keysCollectionFuture.flatMap(keysCollection =>
+//        keysCollection.insert(Json.obj("privateKey" -> keyBytes))
+//      )
