@@ -26,6 +26,7 @@ POST    /user/:id/devices           controllers.UserAsyncController.updateUserDe
 
 # Admin related endpoints
 GET     /admin                      controllers.AdminAsyncController.index
+GET     /admin/list                 controllers.AdminAsyncController.listOfUsers
 GET     /admin/:id                  controllers.AdminAsyncController.editUser(id: String)
 
 # Auth related endpoints

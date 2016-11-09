@@ -73,18 +73,28 @@
             </tbody>
         </table>
         <script>
+
+            var accessToken = document.cookie.split("=")[1];
+
             var getListOfUsers = function() {
-                $.getJSON("/user", function(data) {
-                    <!--console.log(data);-->
-                    var $table = $("#userListTable");
-                    var newRow;
-                    for (var i=0; i < data.objects.length; i++) {
-                        newRow = "<tr><td>" + data.objects[i].firstName +
-                            "</td><td>" + data.objects[i].lastName +
-                            "</td><td>" + data.objects[i].email +
-                            "</td><td><a href='/admin/" + data.objects[i]._id + "'>Add Devices" +
-                            "</a></td></tr>";
-                        $table.append(newRow);
+                $.ajax({
+                    "type": "GET",
+                    "url": "/user",
+                    contentType: "application/json",
+                    dataType: "json",
+                    headers: {"X-ACCESS-TOKEN": accessToken},
+                    success: function(data) {
+                        <!--console.log(data);-->
+                        var $table = $("#userListTable");
+                        var newRow;
+                        for (var i=0; i < data.objects.length; i++) {
+                            newRow = "<tr><td>" + data.objects[i].firstName +
+                                "</td><td>" + data.objects[i].lastName +
+                                "</td><td>" + data.objects[i].email +
+                                "</td><td><a href='/admin/" + data.objects[i]._id + "'>Add Devices" +
+                                "</a></td></tr>";
+                            $table.append(newRow);
+                        }
                     }
                 });
             };
@@ -105,6 +115,7 @@
                     type: "POST",
                     url: "/user",
                     data: JSON.stringify(newUser),
+                    headers: {"X-ACCESS-TOKEN": accessToken},
                     success: function(data) {
                         toggleUserForm();
                         $("#userListTable").find("tr:gt(0)").remove();

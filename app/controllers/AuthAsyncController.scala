@@ -4,6 +4,7 @@ import javax.inject._
 
 import modules.Helpers
 import org.mindrot.jbcrypt.BCrypt
+import org.sedis.Pool
 import play.api.libs.json._
 import play.api.mvc._
 import play.modules.reactivemongo._
@@ -15,7 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 @Singleton
-class AuthAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implicit exec: ExecutionContext)
+class AuthAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi, sedisPool: Pool)(implicit exec: ExecutionContext)
   extends Controller with MongoController with ReactiveMongoComponents {
 
   final val userProjection: JsObject = Json.obj("_id" -> 1, "firstName" -> 1, "lastName" -> 1, "devices" -> 1, "email" -> 1)
@@ -24,7 +25,7 @@ class AuthAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impl
 
   def login = Action.async(parse.json) { request =>
 
-    val helpers = new Helpers(reactiveMongoApi = reactiveMongoApi)
+    val helpers = new Helpers(reactiveMongoApi = reactiveMongoApi, sedisPool = sedisPool)
 
     for {
       adminsCollection <- adminsCollectionFuture

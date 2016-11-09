@@ -53,6 +53,10 @@ j6JU5I7owH/nRR6gmFpySMyTNMVshrr7rQ5qWhzFiVb+ZuJLu1vUSXpIz8zqNQdP
                     data: JSON.stringify({username: username, password: encrypted}),
                     success: function(data) {
                         console.log(data);
+                        if (data.msg === "Success") {
+                            document.cookie = "accessToken=" + data.token;
+                            window.location = "/admin/list";
+                        }
                         <!--alert("Successfully updated user's device list");-->
                     },
                     error: function(data) {

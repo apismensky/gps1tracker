@@ -55,6 +55,8 @@
         <script>
             var userId = "@id";
 
+            var accessToken = document.cookie.split("=")[1];
+
             var getUser = function() {
                 $.getJSON("/user/" + userId, function(user) {
                     <!--console.log(user);-->
@@ -114,6 +116,7 @@
                     type: "POST",
                     url: "/user/" + userId + "/devices",
                     data: JSON.stringify({devices: newUserDevices}),
+                    headers: {"X-ACCESS-TOKEN": accessToken},
                     success: function(data) {
                         <!--console.log(data);-->
                         alert("Successfully updated user's device list");
