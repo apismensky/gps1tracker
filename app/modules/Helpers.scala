@@ -8,6 +8,7 @@ import javax.inject.Inject
 import play.api.libs.json.{JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.ReadPreference
+import reactivemongo.bson.BSONObjectID
 import reactivemongo.play.json.collection._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -16,6 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class Helpers @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implicit exec: ExecutionContext) {
 
   def keysCollectionFuture: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection[JSONCollection]("keys"))
+  def tokensCollectionFuture: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection[JSONCollection]("tokens"))
 
   def decryptUserPassword(encryptedPassword: String): Future[String] = {
     for {
@@ -23,7 +25,7 @@ class Helpers @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implicit exec: E
       result <- {
         import play.modules.reactivemongo.json.ImplicitBSONHandlers._
         keysCollection.find(Json.obj("id" -> 1), Json.obj("privateKey" -> 1)).one[JsObject](ReadPreference.primary).map {
-          case None => "Failed"
+          case None => null // TODO:
           case Some(privateKey: JsObject) => {
             val factory = KeyFactory.getInstance("RSA")
 
@@ -43,6 +45,24 @@ class Helpers @Inject()(val reactiveMongoApi: ReactiveMongoApi)(implicit exec: E
     } yield {
       result
     }
+  }
+
+  def generateToken(user: JsObject): String = {
+
+    import play.modules.reactivemongo.json.BSONFormats._
+    val token = (user \ "_id").as[BSONObjectID].stringify
+
+    for {
+      tokensCollection <- tokensCollectionFuture
+      result <- {
+        import play.modules.reactivemongo.json.ImplicitBSONHandlers._
+        tokensCollection.insert(Json.obj(token -> user))
+      }
+    } yield {
+      token
+    }
+
+    token
   }
 
 }

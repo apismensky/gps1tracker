@@ -23,34 +23,38 @@ class AuthAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impl
   def adminsCollectionFuture: Future[JSONCollection] = database.map(_.collection[JSONCollection]("admins"))
 
   def login = Action.async(parse.json) { request =>
-    adminsCollectionFuture.flatMap(adminsCollection => {
 
-      val password = (request.body \ "password").as[String]
-      val username = (request.body \ "username").as[String]
-      val helpers = new Helpers(reactiveMongoApi = reactiveMongoApi)
+    val helpers = new Helpers(reactiveMongoApi = reactiveMongoApi)
 
-      for {
-        plainPassword <- helpers.decryptUserPassword(encryptedPassword = password)
-        result <- {
-          adminsCollection.find(Json.obj("username" -> username)).one[JsObject](ReadPreference.primary).map {
-            case Some(user: JsObject) => {
-              val password = BCrypt.hashpw(plainPassword, (user \ "salt").as[String])
+    for {
+      adminsCollection <- adminsCollectionFuture
+      plainPassword <- {
+        val password = (request.body \ "password").as[String]
 
-              if (password.equals((user \ "password").as[String])) {
-                Ok(Json.obj("msg" -> "Success"))
-              } else {
-                BadRequest(Json.obj("msg" -> "Wrong credentials"))
-              }
-            }
-            case None => BadRequest(Json.obj("msg" -> "Username doesn't exist"))
-          }
-
-        }
-      } yield {
-        result
+        helpers.decryptUserPassword(encryptedPassword = password)
       }
+      result <- {
+        val username = (request.body \ "username").as[String]
 
-    })
+        adminsCollection.find(Json.obj("username" -> username)).one[JsObject](ReadPreference.primary).map {
+          case Some(user: JsObject) => {
+            val password = BCrypt.hashpw(plainPassword, (user \ "salt").as[String])
+
+            if (password.equals((user \ "password").as[String])) {
+              // Generate token
+              val token = helpers.generateToken(user = user)
+              Ok(Json.obj("msg" -> "Success", "token" -> token))
+            } else {
+              BadRequest(Json.obj("msg" -> "Wrong credentials"))
+            }
+          }
+          case None => BadRequest(Json.obj("msg" -> "Username doesn't exist"))
+        }
+      }
+    } yield {
+      result
+    }
+
   }
 
 }
