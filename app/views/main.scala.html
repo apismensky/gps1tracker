@@ -37,13 +37,14 @@
     function loginUser() {
 	  $.getJSON("http://gps1tracker.herokuapp.com/user/email/"+email.val(), function( data ) {
 		$.each( data, function( key, val ) {
-			var devices = userJson.devices;
-			var select = document.getElementById('trackers');
-			for(i in devices) {
-	    	    var opt = document.createElement('option');
-    			opt.value = devices[i].id;
-    			opt.innerHTML = devices[i].nickname;
-				select.appendChild(opt);
+			if(key == "devices") {
+				var select = document.getElementById('trackers');
+				for(i in val) {
+	    	    	var opt = document.createElement('option');
+    				opt.value = val[i].id;
+    				opt.innerHTML = val[i].nickname;
+					select.appendChild(opt);
+				}
 			}
 		});
       });
