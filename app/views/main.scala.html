@@ -29,14 +29,13 @@
  	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script>
   $( function() {
-    var dialog, form,
-    email = $( "#email" ),
-    password = $( "#password" ),
-    allFields = $( [] ).add( email ).add( password ),
+    var dialog, form;
+    var email = $( "#email" );
+    var password = $( "#password" );
+    var allFields = $( [] ).add( email ).add( password );
  
     function loginUser() {
 	  $.getJSON("http://gps1tracker.herokuapp.com/user/email/"+email.val(), function( data ) {
-		//var userJson = {"_id":{"$oid":"5821d28d48b9afb0fdcaab23"},"firstName":"Eugene","lastName":"Luzgin","email":"eluzgin@gmail.com","devices":[{"id":"10000001","nickname":"tracker 1"}]};
 		$.each( data, function( key, val ) {
 			var devices = userJson.devices;
 			var select = document.getElementById('trackers');
@@ -49,7 +48,7 @@
 		}
       dialog.dialog( "close" );
 	  initMap();
-      return true;
+      }
     }
  
     dialog = $( "#dialog-form" ).dialog({
@@ -75,13 +74,13 @@
 
   } );
   </script>
-    	<style>
+  	<style>
       	/* Always set the map height explicitly to define the size of the div
       	 * element that contains the map. */
       	#map {
         	height: 100%;
       	}
-	.menu {
+		.menu {
     		position: absolute;
     		top:0;
     		right:0; 
@@ -89,14 +88,14 @@
     		background:#d8d8d8;
     		margin: 0px;
     		z-index: 10;
-	}
+		}
       	/* Optional: Makes the sample page fill the window. */
       	html, body {
         	height: 100%;
         	margin: 0;
         	padding: 0;
       	}
-    	</style>
+    </style>
     </head>
     <body>
 	<div id="dialog-form" title="Login User">
@@ -196,7 +195,7 @@
     return lat;
   }
 
-	function initMap() {
+  function initMap() {
 	  var defaultCenter = {lat: 40.7608, lng: -111.8910};
 	  $.getJSON("http://gps1tracker.herokuapp.com/gps/"+trackerId, function( data ) {
   		var lat = 0; 
