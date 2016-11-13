@@ -24,8 +24,6 @@
 	    div#users-contain { width: 350px; margin: 20px 0; }
 	    div#users-contain table { margin: 1em 0; border-collapse: collapse; width: 100%; }
 	    div#users-contain table td, div#users-contain table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
-	    .ui-dialog .ui-state-error { padding: .3em; }
-	    .validateTips { border: 1px solid transparent; padding: 0.3em; }
 	</style>
   	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
  	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -35,49 +33,23 @@
     email = $( "#email" ),
     password = $( "#password" ),
     allFields = $( [] ).add( email ).add( password ),
-    tips = $( ".validateTips" );
- 
-    function updateTips( t ) {
-      tips
-        .text( t )
-        .addClass( "ui-state-highlight" );
-      setTimeout(function() {
-        tips.removeClass( "ui-state-highlight", 1500 );
-      }, 500 );
-    }
- 
-    function checkLength( o, n, min, max ) {
-      if ( o.val().length > max || o.val().length < min ) {
-        o.addClass( "ui-state-error" );
-        updateTips( "Length of " + n + " must be between " +
-          min + " and " + max + "." );
-        return false;
-      } else {
-        return true;
-      }
-    }
  
     function loginUser() {
-      var valid = true;
-      allFields.removeClass( "ui-state-error" ); 
-      valid = valid && checkLength( email, "email", 6, 80 );
-      valid = valid && checkLength( password, "password", 4, 16 );
-      if ( valid ) {
-	var emailVal = email.val();
-        
-	var userJson = {"_id":{"$oid":"5821d28d48b9afb0fdcaab23"},"firstName":"Eugene","lastName":"Luzgin","email":"eluzgin@gmail.com","devices":[{"id":"10000001","nickname":"tracker 1"}]};
-	var devices = userJson.devices;
-	var select = document.getElementById('trackers');
-	for(i in devices) {
-	        var opt = document.createElement('option');
-    		opt.value = devices[i].id;
-    		opt.innerHTML = devices[i].nickname;
-		select.appendChild(opt);
-	}
-        dialog.dialog( "close" );
-		initMap();
-      }
-      return valid;
+	  $.getJSON("http://gps1tracker.herokuapp.com/user/email/"+email.val(), function( data ) {
+		//var userJson = {"_id":{"$oid":"5821d28d48b9afb0fdcaab23"},"firstName":"Eugene","lastName":"Luzgin","email":"eluzgin@gmail.com","devices":[{"id":"10000001","nickname":"tracker 1"}]};
+		$.each( data, function( key, val ) {
+			var devices = userJson.devices;
+			var select = document.getElementById('trackers');
+			for(i in devices) {
+	    	    var opt = document.createElement('option');
+    			opt.value = devices[i].id;
+    			opt.innerHTML = devices[i].nickname;
+				select.appendChild(opt);
+			}
+		}
+      dialog.dialog( "close" );
+	  initMap();
+      return true;
     }
  
     dialog = $( "#dialog-form" ).dialog({
@@ -93,7 +65,6 @@
       },
       close: function() {
         form[ 0 ].reset();
-        allFields.removeClass( "ui-state-error" );
       }
     });
  
@@ -129,7 +100,6 @@
     </head>
     <body>
 	<div id="dialog-form" title="Login User">
- 	 <span class="validateTips"></span> 
   	 <form>
    	   <fieldset>
       		<label for="email">Email</label>
