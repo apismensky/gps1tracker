@@ -20,6 +20,7 @@ GET     /gps/:id/:timestamp         controllers.GpsAsyncController.getLastEntrie
 # User related endpoints
 GET     /user                       controllers.UserAsyncController.index
 GET     /user/:id                   controllers.UserAsyncController.getUser(id: String)
+GET     /user/email/:email          controllers.UserAsyncController.findUser(email: String)
 POST    /user                       controllers.UserAsyncController.create
 # User devices endpoint
 POST    /user/:id/devices           controllers.UserAsyncController.updateUserDevices(id: String)

@@ -113,6 +113,19 @@ class UserAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi, sedi
     }
   }
 
+  def findUser(email: String) = Action.async { request =>
+      for {
+        usersCollection <- usersCollectionFuture
+        userOption <- usersCollection.find(Json.obj("email" -> email), userProjection).one[JsObject](ReadPreference.primary).map(s => s)
+      } yield {
+        val user = userOption match {
+          case Some(user: JsObject) => user
+          case None => Json.obj()
+        }
+        Ok(user)
+      }
+  }
+  
   def updateUserDevices(id: String) = Action.async(parse.json) { request =>
     val user = sedisPool.withJedisClient(client => client.get(request.headers.get("X-ACCESS-TOKEN").get))
 
