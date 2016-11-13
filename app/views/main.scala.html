@@ -15,7 +15,111 @@
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
 	<meta name="viewport" content="initial-scale=1.0">
     	<meta charset="utf-8">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<style>
+	    label, input { display:block; }
+	    input.text { margin-bottom:12px; width:95%; padding: .4em; }
+	    fieldset { padding:0; border:0; margin-top:25px; }
+	    h1 { font-size: 1.2em; margin: .6em 0; }
+	    div#users-contain { width: 350px; margin: 20px 0; }
+	    div#users-contain table { margin: 1em 0; border-collapse: collapse; width: 100%; }
+	    div#users-contain table td, div#users-contain table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
+	    .ui-dialog .ui-state-error { padding: .3em; }
+	    .validateTips { border: 1px solid transparent; padding: 0.3em; }
+	</style>
+  	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+ 	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+  $( function() {
+    var dialog, form,
+ 
+      emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
+      email = $( "#email" ),
+      password = $( "#password" ),
+      allFields = $( [] ).add( email ).add( password ),
+      tips = $( ".validateTips" );
+ 
+    function updateTips( t ) {
+      tips
+        .text( t )
+        .addClass( "ui-state-highlight" );
+      setTimeout(function() {
+        tips.removeClass( "ui-state-highlight", 1500 );
+      }, 500 );
+    }
+ 
+    function checkLength( o, n, min, max ) {
+      if ( o.val().length > max || o.val().length < min ) {
+        o.addClass( "ui-state-error" );
+        updateTips( "Length of " + n + " must be between " +
+          min + " and " + max + "." );
+        return false;
+      } else {
+        return true;
+      }
+    }
+ 
+    function checkRegexp( o, regexp, n ) {
+      if ( !( regexp.test( o.val() ) ) ) {
+        o.addClass( "ui-state-error" );
+        updateTips( n );
+        return false;
+      } else {
+        return true;
+      }
+    }
+ 
+    function loginUser() {
+      var valid = true;
+      allFields.removeClass( "ui-state-error" );
+ 
+      valid = valid && checkLength( email, "email", 6, 80 );
+      valid = valid && checkLength( password, "password", 5, 16 );
+ 
+      valid = valid && checkRegexp( email, emailRegex, "Invalid email format" );
+ 
+      if ( valid ) {
+	var emailVal = email.val();
+        
+	var userJson = {"_id":{"$oid":"5821d28d48b9afb0fdcaab23"},"firstName":"Eugene","lastName":"Luzgin","email":"eluzgin@gmail.com","devices":[{"id":"10000001","nickname":"tracker 1"}]};
+	var devices = userJson.devices;
+	var select = document.getElementById('trackers');
+	for(i in devices) {
+	        var opt = document.createElement('option');
+    		opt.value = devices[i].id;
+    		opt.innerHTML = devices[i].nickname;
+		select.appendChild(opt);
+	}
+        dialog.dialog( "close" );
+		initMap();
+      }
+      return valid;
+    }
+ 
+    dialog = $( "#dialog-form" ).dialog({
+      autoOpen: true,
+      height: 350,
+      width: 400,
+      modal: true,
+      buttons: {
+        "Login": loginUser,
+        Cancel: function() {
+          dialog.dialog( "close" );
+        }
+      },
+      close: function() {
+        form[ 0 ].reset();
+        allFields.removeClass( "ui-state-error" );
+      }
+    });
+ 
+    form = dialog.find( "form" ).on( "submit", function( event ) {
+      event.preventDefault();
+      loginUser();
+    });
+
+  } );
+  </script>
     	<style>
       	/* Always set the map height explicitly to define the size of the div
       	 * element that contains the map. */
@@ -40,12 +144,25 @@
     	</style>
     </head>
     <body>
+	<div id="dialog-form" title="Login User">
+ 	 <span class="validateTips"></span> 
+  	 <form>
+   	   <fieldset>
+      		<label for="email">Email</label>
+      		<input type="text" name="email" id="email" value="" class="text ui-widget-content ui-corner-all">
+      		<label for="password">Password</label>
+      		<input type="password" name="password" id="password" value="" class="text ui-widget-content ui-corner-all"> 
+      		<!-- Allow form submission with keyboard without duplicating the dialog button -->
+      		<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+    	  </fieldset>
+  	</form>
+	</div>
       <div class="menu">
         <table><tr><td><img src="@routes.Assets.versioned("images/logo.png")" alt="GPS1Tracker" height="20px"></td>
         <td><input type="button" value="1 hr" onClick="loadRecords(3600)"></td>
         <td><input type="button" value="6 hrs" onClick="loadRecords(21600)"></td>
         <td><input type="button" value="1 day" onClick="loadRecords(86400)"></td>
-        <td><input type="button" value="6 days" onClick="loadRecords(518400)"></td>
+        <td><select name="trackers" id="trackers"></select></td>
         <td><input type="button" value="X" onClick="clearMap()"></td>
         </tr></table>
       </div>
@@ -168,7 +285,7 @@
     }
 
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXbLHs_OX8buHMtFRrRUttokJ5uRJ1elw&callback=initMap"
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXbLHs_OX8buHMtFRrRUttokJ5uRJ1elw"
     async defer></script>
 
     </body>
