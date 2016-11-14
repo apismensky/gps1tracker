@@ -125,7 +125,6 @@
   var map;
   var pathPolyline;
   var marker;
-  var trackerId = "10000001";
 
   function clearMap() {
     if(pathPolyline) {
@@ -135,6 +134,7 @@
 
   function loadRecords(DIFF_timestamp) {
     clearMap();
+    var trackerId = $( "#trackers").val();
     var timestamp = parseInt(Date.now()/1000);
     var tsMarker = timestamp - DIFF_timestamp;
     var positionPath = [];
