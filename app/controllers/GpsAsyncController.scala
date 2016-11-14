@@ -72,7 +72,7 @@ class GpsAsyncController @Inject()(val reactiveMongoApi: ReactiveMongoApi)(impli
   // curl http://localhost:9000/gps/6254614
   def getLastEntryById(id: String) = Action.async { request =>
     coordinatedFuture.flatMap(gpsRecordsCollection => {
-      val projection: JsObject = Json.obj("i" -> id, "$or" -> JsArray(Seq(Json.obj("e" -> Json.obj("$ne" -> "000000000")), Json.obj("n" -> Json.obj("$ne" ->"000000000")))))
+      val projection: JsObject = Json.obj("i" -> id, "$or" -> JsArray(Seq(Json.obj("e" -> Json.obj("$ne" -> "000000000")), Json.obj("n" -> Json.obj("$ne" -> "0000000000")))))
 
       gpsRecordsCollection.find(projection).sort(Json.obj("ts" -> -1)).one[JsObject](ReadPreference.primary).map(record => Ok(Json.toJson(record)))
     })
