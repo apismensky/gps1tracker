@@ -47,9 +47,13 @@
 				}
 			}
 		});
+		if($( "#trackers").val() != null) {
+			initMap($( "#trackers").val());
+		} else {
+			alert("No tracking devices found");
+		}
       });
       dialog.dialog( "close" );
-	  initMap();
     }
  
     dialog = $( "#dialog-form" ).dialog({
@@ -196,9 +200,8 @@
     return lat;
   }
 
-  function initMap() {
+  function initMap(trackerId) {
 	  var defaultCenter = {lat: 40.7608, lng: -111.8910};
-	  var trackerId = $( "#trackers").val();
 	  $.getJSON("http://gps1tracker.herokuapp.com/gps/"+trackerId, function( data ) {
   		var lat = 0; 
 		  var lng = 0;
