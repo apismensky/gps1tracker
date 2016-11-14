@@ -75,6 +75,129 @@
       event.preventDefault();
       loginUser();
     });
+    
+    // Map related code below:
+    var map;
+    var pathPolyline;
+    var marker;
+
+    function clearMap() {
+      if(pathPolyline) {
+        pathPolyline.setMap(null);
+      }
+    }
+
+    function loadRecords(DIFF_timestamp) {
+      clearMap();
+      var trackerId = $( "#trackers").val();
+      var timestamp = parseInt(Date.now()/1000);
+      var tsMarker = timestamp - DIFF_timestamp;
+      var positionPath = [];
+      $.getJSON("http://gps1tracker.herokuapp.com/gps/"+trackerId+"/"+tsMarker, function( data ) {
+        var lat = 0; 
+        var lng = 0;
+        var timestamp = 0;
+        $.each( data, function( key, rec ) {
+          if(rec.e!='000000000' && rec.n!='000000000') {
+            lng = convertToLng(rec.e);
+            lat = convertToLat(rec.n);
+            timestamp = rec.ts;
+            var position = {};
+            position["lat"] = lat;
+            position["lng"] = lng;
+            positionPath.push(position);
+          }
+        });
+        // set position path on a map:
+        pathPolyline = new google.maps.Polyline({
+          path: positionPath,
+          geodesic: true,
+          strokeColor: '#FF0000',
+          strokeOpacity: 1.0,
+          strokeWeight: 2
+        });
+        pathPolyline.setMap(map);
+      });
+    }
+
+  	function timeConverter(UNIX_timestamp){
+  	  var a = new Date(UNIX_timestamp * 1000);
+  	  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  	  var year = a.getFullYear();
+  	  var month = months[a.getMonth()];
+  	  var date = a.getDate();
+  	  var hour = a.getHours();
+  	  var min = a.getMinutes();
+  	  var sec = a.getSeconds();
+  	  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+  	  return time;
+  	}
+
+    function convertToLng(e) {
+      var dd = e.substring(0,3);
+      var mm = e.substring(3,e.length-1);
+      var we = e.substring(e.length-1);
+      lng = parseInt(dd) + parseFloat(mm)/60;
+      if(we=='W') lng = -lng;
+      return lng;
+    }
+
+    function convertToLat(n) {
+      var dd = n.substring(0,2);
+      var mm = n.substring(2,n.length-1);
+      var ns = n.substring(n.length-1);
+      lat = parseInt(dd) + parseFloat(mm)/60;
+      if(ns=='S') lat = -lat;
+      return lat;
+    }
+    
+    function initMap(trackerId) {
+  	  var defaultCenter = {lat: 40.7608, lng: -111.8910};
+  	  $.getJSON("http://gps1tracker.herokuapp.com/gps/"+trackerId, function( data ) {
+    	  var lat = 0; 
+  		  var lng = 0;
+  		  var timestamp;
+  		  var battery;
+    		$.each( data, function( key, val ) {
+      		if(key=="e") { // Longitude
+  				  var e = val;
+  				  if(e!='000000000') {
+  					 lng = convertToLng(e);
+  				  } 
+  			  } else if(key=="n") { // Latitude
+  				  var n = val;
+  				  if(n!='000000000') {
+  					 lat = convertToLat(n);
+  				  }	
+  			  } else if(key=="ts") {
+  				  timestamp = val;
+  			  } else if(key=="b") {
+  				  battery = val;
+  			  }
+    		}); 
+    		if(lat==0||lng==0) {
+    	    	map = new google.maps.Map(document.getElementById('map'), {
+            		center: defaultCenter,
+            		zoom: 8
+          		});
+          		alert('Current Location is not available.');
+  		  	} else {
+  		    	var position = {lat: lat, lng: lng};
+  		    	map = new google.maps.Map(document.getElementById('map'), {
+            		center: position,
+            		zoom: 15
+          		});
+  		  		marker = new google.maps.Marker({
+            		position: position,
+            		map: map,
+            		title: 'Last seen: '+timeConverter(timestamp)
+          		});
+  		  		$("#status").html('Last seen: '+ timeConverter(timestamp));
+  		  		$("#battery").html(battery+'%');
+  		  		$("#battery_icon").css('display') == 'visible';
+  		  }
+  	  });
+      }
 
   } );
   </script>
@@ -84,11 +207,14 @@
       	#map {
         	height: 100%;
       	}
+      	#battery {
+			font-size: 12px;
+		}
 		.menu {
     		position: absolute;
     		top:0;
     		right:0; 
-    		height:30px;
+    		height:50px;
     		background:#d8d8d8;
     		margin: 0px;
     		z-index: 10;
@@ -121,127 +247,15 @@
         <td><input type="button" value="1 day" onClick="loadRecords(86400)"></td>
         <td><select name="trackers" id="trackers"></select></td>
         <td><input type="button" value="X" onClick="clearMap()"></td>
-        </tr></table>
+        </tr>
+        <tr><td colspan=4><span id="status">unknown status</span></td>
+        <td><span id="battery_icon"  style="display:hidden">
+        	<img src="@routes.Assets.versioned("images/battery_full.png")">
+        	</span></td>
+        <td><span id="battery"></span></td></tr>
+        </table>
       </div>
       <div id="map"></div>
-    <script>
-  var map;
-  var pathPolyline;
-  var marker;
-
-  function clearMap() {
-    if(pathPolyline) {
-      pathPolyline.setMap(null);
-    }
-  }
-
-  function loadRecords(DIFF_timestamp) {
-    clearMap();
-    var trackerId = $( "#trackers").val();
-    var timestamp = parseInt(Date.now()/1000);
-    var tsMarker = timestamp - DIFF_timestamp;
-    var positionPath = [];
-    $.getJSON("http://gps1tracker.herokuapp.com/gps/"+trackerId+"/"+tsMarker, function( data ) {
-      var lat = 0; 
-      var lng = 0;
-      var timestamp = 0;
-      $.each( data, function( key, rec ) {
-        if(rec.e!='000000000' && rec.n!='000000000') {
-          lng = convertToLng(rec.e);
-          lat = convertToLat(rec.n);
-          timestamp = rec.ts;
-          var position = {};
-          position["lat"] = lat;
-          position["lng"] = lng;
-          positionPath.push(position);
-        }
-      });
-      // set position path on a map:
-      pathPolyline = new google.maps.Polyline({
-        path: positionPath,
-        geodesic: true,
-        strokeColor: '#FF0000',
-        strokeOpacity: 1.0,
-        strokeWeight: 2
-      });
-      pathPolyline.setMap(map);
-    });
-  }
-
-	function timeConverter(UNIX_timestamp){
-	  var a = new Date(UNIX_timestamp * 1000);
-	  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-	  var year = a.getFullYear();
-	  var month = months[a.getMonth()];
-	  var date = a.getDate();
-	  var hour = a.getHours();
-	  var min = a.getMinutes();
-	  var sec = a.getSeconds();
-	  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
-	  return time;
-	}
-
-  function convertToLng(e) {
-    var dd = e.substring(0,3);
-    var mm = e.substring(3,e.length-1);
-    var we = e.substring(e.length-1);
-    lng = parseInt(dd) + parseFloat(mm)/60;
-    if(we=='W') lng = -lng;
-    return lng;
-  }
-
-  function convertToLat(n) {
-    var dd = n.substring(0,2);
-    var mm = n.substring(2,n.length-1);
-    var ns = n.substring(n.length-1);
-    lat = parseInt(dd) + parseFloat(mm)/60;
-    if(ns=='S') lat = -lat;
-    return lat;
-  }
-  
-  function initMap(trackerId) {
-	  var defaultCenter = {lat: 40.7608, lng: -111.8910};
-	  $.getJSON("http://gps1tracker.herokuapp.com/gps/"+trackerId, function( data ) {
-  		var lat = 0; 
-		  var lng = 0;
-		  var timestamp;
-  		$.each( data, function( key, val ) {
-    		if(key=="e") { // Longitude
-				  var e = val;
-				  if(e!='000000000') {
-					 lng = convertToLng(e);
-				  } 
-			  } else if(key=="n") { // Latitude
-				  var n = val;
-				  if(n!='000000000') {
-					 lat = convertToLat(n);
-				  }	
-			  } else if(key=="ts") {
-				  timestamp = val;
-			  }
-  		}); 
-  		if(lat==0||lng==0) {
-  	    map = new google.maps.Map(document.getElementById('map'), {
-          center: defaultCenter,
-          zoom: 8
-        });
-        alert('Current Location is not available.');
-		  } else {
-		    var position = {lat: lat, lng: lng};
-		    map = new google.maps.Map(document.getElementById('map'), {
-          center: position,
-          zoom: 15
-        });
-		marker = new google.maps.Marker({
-          position: position,
-          map: map,
-          title: 'Last seen: '+timeConverter(timestamp)
-        });
-		  }
-	  });
-    }
-
-    </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXbLHs_OX8buHMtFRrRUttokJ5uRJ1elw"
     async defer></script>
 
