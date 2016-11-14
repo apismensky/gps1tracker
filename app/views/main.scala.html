@@ -194,7 +194,7 @@
           		});
   		  		$("#status").html('Last seen: '+ timeConverter(timestamp));
   		  		$("#battery").html(battery+'%');
-  		  		$("#battery_icon").css('display') == 'visible';
+  		  		$("#battery_icon").css('visibility') == 'visible';
   		  }
   	  });
       }
@@ -249,7 +249,7 @@
         <td><input type="button" value="X" onClick="clearMap()"></td>
         </tr>
         <tr><td colspan=4><span id="status">unknown status</span></td>
-        <td><span id="battery_icon"  style="display:hidden">
+        <td align="right"><span id="battery_icon"  style="visibility:hidden">
         	<img src="@routes.Assets.versioned("images/battery_full.png")">
         	</span></td>
         <td><span id="battery"></span></td></tr>
