@@ -51,6 +51,7 @@
 			initMap($( "#trackers").val());
 		} else {
 			alert("No tracking devices found");
+			initEmptyMap();
 		}
       });
       dialog.dialog( "close" );
@@ -200,6 +201,13 @@
     return lat;
   }
 
+  function initEmptyMap() {
+	  map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 40.7608, lng: -111.8910},
+          zoom: 8
+        });
+  }
+  
   function initMap(trackerId) {
 	  var defaultCenter = {lat: 40.7608, lng: -111.8910};
 	  $.getJSON("http://gps1tracker.herokuapp.com/gps/"+trackerId, function( data ) {
