@@ -198,6 +198,7 @@
 
   function initMap() {
 	  var defaultCenter = {lat: 40.7608, lng: -111.8910};
+	  var trackerId = $( "#trackers").val();
 	  $.getJSON("http://gps1tracker.herokuapp.com/gps/"+trackerId, function( data ) {
   		var lat = 0; 
 		  var lng = 0;
@@ -229,7 +230,7 @@
           center: position,
           zoom: 15
         });
-		    marker = new google.maps.Marker({
+		marker = new google.maps.Marker({
           position: position,
           map: map,
           title: 'Last seen: '+timeConverter(timestamp)
