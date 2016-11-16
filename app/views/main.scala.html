@@ -85,17 +85,16 @@
     	if(pathPolyline) {
         	pathPolyline.setMap(null);
         }
-    }
-    
+    });
     $("#route_1h").on("click", function(evt) {
     	loadRecords(3600);
-    }
+    });
     $("#route_6h").on("click", function(evt) {
     	loadRecords(21600);
-    }
+    });
     $("#route_1d").on("click", function(evt) {
     	loadRecords(86400);
-    }
+    });
 
     function loadRecords(DIFF_timestamp) {
       clearMap();
