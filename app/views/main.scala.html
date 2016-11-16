@@ -82,9 +82,7 @@
     var marker;
 
     $("#clearRoute").on("click", function(evt) {
-    	if(pathPolyline) {
-        	pathPolyline.setMap(null);
-        }
+    	clearMap();
     });
     $("#route_1h").on("click", function(evt) {
     	loadRecords(3600);
@@ -95,6 +93,12 @@
     $("#route_1d").on("click", function(evt) {
     	loadRecords(86400);
     });
+    
+    function clearMap() {
+    	if(pathPolyline) {
+        	pathPolyline.setMap(null);
+        }
+    }
 
     function loadRecords(DIFF_timestamp) {
       clearMap();
