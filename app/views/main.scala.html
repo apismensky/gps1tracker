@@ -81,10 +81,20 @@
     var pathPolyline;
     var marker;
 
-    function clearMap() {
-      if(pathPolyline) {
-        pathPolyline.setMap(null);
-      }
+    $("#clearRoute").on("click", function(evt) {
+    	if(pathPolyline) {
+        	pathPolyline.setMap(null);
+        }
+    }
+    
+    $("#route_1h").on("click", function(evt) {
+    	loadRecords(3600);
+    }
+    $("#route_6h").on("click", function(evt) {
+    	loadRecords(21600);
+    }
+    $("#route_1d").on("click", function(evt) {
+    	loadRecords(86400);
     }
 
     function loadRecords(DIFF_timestamp) {
@@ -241,11 +251,11 @@
 	</div>
       <div class="menu">
         <table><tr><td><img src="@routes.Assets.versioned("images/logo.png")" alt="GPS1Tracker" height="20px"></td>
-        <td><input type="button" value="1 hr" onClick="loadRecords(3600)"></td>
-        <td><input type="button" value="6 hrs" onClick="loadRecords(21600)"></td>
-        <td><input type="button" value="1 day" onClick="loadRecords(86400)"></td>
+        <td><input type="button" value="1 hr" id="route_1h"></td> 
+        <td><input type="button" value="6 hrs" id="route_6h"></td>
+        <td><input type="button" value="1 day" id="route_1d"></td>
         <td><select name="trackers" id="trackers"></select></td>
-        <td><input type="button" value="X" onClick="clearMap()"></td>
+        <td><input type="button" value="X" id="clearRoute"></td>
         </tr>
         <tr><td colspan=4><span id="status">unknown status</span></td>
         <td align="right"><span id="battery_icon">
